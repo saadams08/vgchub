@@ -29,6 +29,7 @@ const teamSchema = z.object({
   format: z.enum(["Singles", "Doubles"]),
   archetype: z.string().optional(),
   isPublic: z.boolean().default(true),
+  rentalCode: z.string().max(10).optional(),
   slots: z.array(slotSchema).min(1).max(6),
 });
 
@@ -47,7 +48,7 @@ export async function createTeam(data: z.infer<typeof teamSchema>): Promise<Team
     return { errors: parsed.error.flatten().fieldErrors };
   }
 
-  const { title, description, format, archetype, isPublic, slots } = parsed.data;
+  const { title, description, format, archetype, isPublic, rentalCode, slots } = parsed.data;
 
   // Validate total EVs per slot <= 510
   for (const slot of slots) {
@@ -64,6 +65,7 @@ export async function createTeam(data: z.infer<typeof teamSchema>): Promise<Team
       format,
       archetype,
       isPublic,
+      rentalCode: rentalCode || null,
       authorId: session.user.id,
       slots: {
         create: slots.map((s) => ({

@@ -80,6 +80,7 @@ export function TeamBuilderForm({ pokemon }: { pokemon: PokemonOption[] }) {
   const [format, setFormat] = useState<"Singles" | "Doubles">("Singles");
   const [archetype, setArchetype] = useState("");
   const [isPublic, setIsPublic] = useState(true);
+  const [rentalCode, setRentalCode] = useState("");
   const [slots, setSlots] = useState<SlotData[]>([EMPTY_SLOT(0)]);
   const [expandedSlot, setExpandedSlot] = useState<number>(0);
   const [pokemonSearch, setPokemonSearch] = useState<Record<number, string>>({});
@@ -140,6 +141,7 @@ export function TeamBuilderForm({ pokemon }: { pokemon: PokemonOption[] }) {
         format,
         archetype: archetype || undefined,
         isPublic,
+        rentalCode: rentalCode || undefined,
         slots: filledSlots.map((s) => ({
           ...s,
           moves: s.moves.filter(Boolean),
@@ -216,6 +218,20 @@ export function TeamBuilderForm({ pokemon }: { pokemon: PokemonOption[] }) {
                 <SelectItem value="private">Private</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div>
+            <label className="text-xs text-zinc-500 mb-1 block">
+              Team Code <span className="text-zinc-600">(optional)</span>
+            </label>
+            <Input
+              placeholder="e.g. 0000 0000 00"
+              value={rentalCode}
+              onChange={(e) => setRentalCode(e.target.value)}
+              maxLength={10}
+            />
+            <p className="text-xs text-zinc-600 mt-1">
+              In-game rental code so others can import your team directly.
+            </p>
           </div>
         </div>
         <div>

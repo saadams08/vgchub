@@ -121,6 +121,7 @@ model TeamBuild {
   format      String   // "Singles" | "Doubles"
   archetype   String?  // e.g. "HyperOffense", "Stall", "Balance"
   isPublic    Boolean  @default(true)
+  rentalCode  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

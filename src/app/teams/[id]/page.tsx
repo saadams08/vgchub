@@ -66,6 +66,16 @@ export default async function TeamPage({ params }: Props) {
           <span>{formatDate(team.createdAt)}</span>
           <VoteButtons teamId={team.id} voteCount={voteCount} userVote={userVote} />
         </div>
+
+        {team.rentalCode && (
+          <div className="mt-4 inline-flex items-center gap-3 rounded-lg border border-violet-500/30 bg-violet-500/10 px-4 py-2.5">
+            <div>
+              <p className="text-xs text-violet-400 font-semibold uppercase tracking-wide mb-0.5">Team Code</p>
+              <p className="text-lg font-mono font-bold text-white tracking-widest">{team.rentalCode}</p>
+            </div>
+            <p className="text-xs text-zinc-500 max-w-[160px]">Enter this in-game to import the team directly</p>
+          </div>
+        )}
       </div>
 
       {/* Slots */}
