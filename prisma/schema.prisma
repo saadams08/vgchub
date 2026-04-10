@@ -1,0 +1,219 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Auth ────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  username      String?   @unique
+  password      String?
+  bio           String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts     Account[]
+  sessions     Session[]
+  teams        TeamBuild[]
+  comments     Comment[]
+  votes        Vote[]
+  pokemonRecs  PokemonRecommendation[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Pokemon Data ────────────────────────────────────────────────
+
+model Pokemon {
+  id          String  @id @default(cuid())
+  dexNumber   Int     @unique
+  name        String  @unique
+  displayName String
+  types       String  // JSON array e.g. ["Fire","Flying"]
+  hp          Int     @default(0)
+  attack      Int     @default(0)
+  defense     Int     @default(0)
+  spAtk       Int     @default(0)
+  spDef       Int     @default(0)
+  speed       Int     @default(0)
+  imageUrl    String?
+  spriteUrl   String?
+  description String?
+
+  abilities       PokemonAbility[]
+  teamSlots       TeamSlot[]
+  recommendations PokemonRecommendation[]
+}
+
+model Ability {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  pokemon PokemonAbility[]
+}
+
+model PokemonAbility {
+  id        String  @id @default(cuid())
+  pokemonId String
+  abilityId String
+  isHidden  Boolean @default(false)
+
+  pokemon Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  ability Ability @relation(fields: [abilityId], references: [id], onDelete: Cascade)
+}
+
+model Item {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  imageUrl    String?
+}
+
+// ─── Teams ───────────────────────────────────────────────────────
+
+model TeamBuild {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  format      String   // "Singles" | "Doubles"
+  archetype   String?  // e.g. "HyperOffense", "Stall", "Balance"
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  authorId String
+  author   User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  slots    TeamSlot[]
+  comments Comment[]
+  votes    Vote[]
+
+  @@index([format])
+  @@index([authorId])
+}
+
+model TeamSlot {
+  id        String @id @default(cuid())
+  slotIndex Int    // 0-5
+  teamId    String
+  pokemonId String
+
+  nickname String?
+  level    Int     @default(50)
+  itemName String?
+  nature   String?
+  ability  String?
+  moves    String  // JSON array of up to 4 move names
+  evHp     Int     @default(0)
+  evAtk    Int     @default(0)
+  evDef    Int     @default(0)
+  evSpAtk  Int     @default(0)
+  evSpDef  Int     @default(0)
+  evSpeed  Int     @default(0)
+  ivHp     Int     @default(31)
+  ivAtk    Int     @default(31)
+  ivDef    Int     @default(31)
+  ivSpAtk  Int     @default(31)
+  ivSpDef  Int     @default(31)
+  ivSpeed  Int     @default(31)
+  notes    String?
+
+  team    TeamBuild @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  pokemon Pokemon   @relation(fields: [pokemonId], references: [id])
+
+  @@unique([teamId, slotIndex])
+}
+
+// ─── Community ───────────────────────────────────────────────────
+
+model Comment {
+  id        String   @id @default(cuid())
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authorId String
+  teamId   String
+  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  team     TeamBuild @relation(fields: [teamId], references: [id], onDelete: Cascade)
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  value     Int      // 1 = upvote
+  createdAt DateTime @default(now())
+
+  userId String
+  teamId String
+  user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team   TeamBuild @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, teamId])
+}
+
+model PokemonRecommendation {
+  id          String   @id @default(cuid())
+  pokemonId   String
+  authorId    String
+  title       String
+  itemName    String?
+  nature      String?
+  abilityName String?
+  moves       String   // JSON array of move names
+  evHp        Int      @default(0)
+  evAtk       Int      @default(0)
+  evDef       Int      @default(0)
+  evSpAtk     Int      @default(0)
+  evSpDef     Int      @default(0)
+  evSpeed     Int      @default(0)
+  description String?
+  upvotes     Int      @default(0)
+  format      String   @default("Singles")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  pokemon Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  author  User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
